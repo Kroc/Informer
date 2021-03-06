@@ -1,0 +1,3 @@
+[submodule "inform6-src"]
+	path = inform6-src
+	url = https://github.com/Kroc/Inform6.git
