@@ -1,0 +1,201 @@
+Inform 6.34 for Win32 (21st May 2020)
+
+This program is a compiler of Infocom format (also called "Z-machine")
+story files: copyright (c) Graham Nelson 1993 - 2020.
+
+Usage: "inform [commands...] <file1> [<file2>]"
+
+<file1> is the Inform source file of the game to be compiled. <file2>,
+if given, overrides the filename Inform would normally use for the
+compiled output.  Try "inform -h1" for file-naming conventions.
+
+One or more words can be supplied as "commands". These may be:
+
+  -switches     a list of compiler switches, 1 or 2 letter
+                (see "inform -h2" for the full range)
+
+  +dir          set Include_Path to this directory
+  +PATH=dir     change the PATH to this directory
+
+  $...          one of the following memory commands:
+     $list            list current memory allocation settings
+     $huge            make standard "huge game" settings (default)
+     $large           make standard "large game" settings 
+     $small           make standard "small game" settings 
+     $?SETTING        explain briefly what SETTING is for
+     $SETTING=number  change SETTING to given number
+
+  (filename)    read in a list of commands (in the format above)
+                from this "setup file"
+
+For example: "inform -dexs $huge curses".
+
+For fuller information, see the Inform Designer's Manual.
+
+Help information on filenames:
+
+The command line can take one of two forms:
+
+  inform [commands...] <file1>
+  inform [commands...] <file1> <file2>
+
+Inform translates <file1> into a source file name (see below) for its input.
+<file2> is usually omitted: if so, the output filename is made from <file1>
+by cutting out the name part and translating that (see below).
+If <file2> is given, however, the output filename is set to just <file2>
+(not altered in any way).
+
+Filenames given in the game source (with commands like Include "name" and
+Link "name") are also translated by the rules below.
+
+Rules of translation:
+
+Inform translates plain filenames (such as "xyzzy") into full pathnames
+(such as "adventure\games\xyzzy") according to the following rules.
+
+1. If the name contains a '\' character (so it's already a pathname), it
+   isn't changed.
+
+   [Exception: when the name is given in an Include command using the >
+   form (such as Include ">prologue"), the ">" is replaced by the path
+   of the file doing the inclusion and a suitable file extension is added.]
+
+   Filenames must never contain double-quotation marks ".  To use filenames
+   which contain spaces, write them in double-quotes: for instance,
+
+   "inform +code_path="Jigsaw Final Version" jigsaw".
+
+2. The file is looked for at a particular "path" (the filename of a
+   directory), depending on what kind of file it is.
+
+       File type              Name                Current setting
+
+       Source code (in)       source_path         (unset)
+       Include file (in)      include_path        (unset)
+       Story file (out)       code_path           (unset)
+       Temporary file (out)   temporary_path      (unset)
+       ICL command file (in)  icl_path            (unset)
+       Module (in & out)      module_path         (unset)
+
+   If the path is unset, then the current working directory is used (so
+   the filename doesn't change): if, for instance, include_path is set to
+   "backup\oldlib" then when "parser" is included it is looked for at
+   "backup\oldlib\parser".
+
+   The paths can be set or unset on the Inform command line by, eg,
+   "inform +code_path=finished jigsaw" or
+   "inform +include_path= balances" (which unsets include_path).
+
+   The four input path variables can be set to lists of alternative paths
+   separated by ',' characters: these alternatives are always tried in
+   the order they are specified in, that is, left to right through the text
+   in the path variable.
+
+   If two '+' signs are used ("inform ++include_path=dir jigsaw") then
+   the path or paths are added to the existing list.
+
+   (Modules are written to the first alternative in the module_path list;
+   it is an error to give alternatives at all for purely output paths.)
+
+3. The following file extensions are added:
+
+      Source code:     .inf
+      Include files:   .h
+      Story files:     .z3 (Version 3), .z4 (v4), .z5 (v5, the default),
+                       .z6 (v6), .z7 (v7), .z8 (v8), .ulx (Glulx)
+      Temporary files: .tmp
+      Modules:         .m5
+
+   except that any extension you give (on the command line or in a filename
+   used in a program) will override these.  If you give the null extension
+   "." then Inform uses no file extension at all (removing the ".").
+
+Names of four individual files can also be set using the same
+  + command notation (though they aren't really pathnames).  These are:
+
+      transcript_name  (text written by -r switch): now "gametext.txt"
+      debugging_name   (data written by -k switch): now "gameinfo.dbg"
+      language_name    (library file defining natural language of game):
+                       now "English"
+      charset_map      (file for character set mapping): now ""
+
+Examples: 1. "inform rezrov"
+  the source code is read from "rezrov.inf"
+  and a story file is compiled to "rezrov.z5".
+
+2. "inform -M frotz"
+  the source code is read from "frotz.inf"
+  and a module is compiled to "frotz.m5".
+
+3. "inform demos\plugh"
+  the source code is read from "demos\plugh.inf"
+  and a story file is compiled to "plugh.z5".
+
+4. "inform plover my_demo"
+  the source code is read from "plover.inf"
+  and a story file is compiled to "my_demo".
+
+5. "inform +source_path=,new,old\recent,old\ancient zooge"
+   Note that four alternative paths are given, the first being the empty
+   path-name (meaning: where you are now).  Inform looks for the source code
+   by trying these four places in turn, stopping when it finds anything:
+
+     "zooge.inf"
+     "new\zooge.inf"
+     "old\recent\zooge.inf"
+     "old\ancient\zooge.inf"
+
+Help on the full list of legal switch commands:
+
+  a   trace assembly-language (without hex dumps; see -t)
+  c   more concise error messages
+  d   contract double spaces after full stops in text
+  d2  contract double spaces after exclamation and question marks, too
+  e   economy mode (slower): make use of declared abbreviations
+  f   frequencies mode: show how useful abbreviations are
+  g   traces calls to functions (except in the library)
+  g2  traces calls to all functions
+  h   print this information
+  i   ignore default switches set within the file
+  j   list objects as constructed
+  k   output Infix debugging information to "gameinfo.dbg" (and switch -D on)
+  l   list every statement run through Inform
+  m   say how much memory has been allocated
+  n   print numbers of properties, attributes and actions
+  o   print offset addresses
+  p   give percentage breakdown of story file
+  q   keep quiet about obsolete usages
+  r   record all the text to "gametext.txt"
+  s   give statistics
+  t   trace assembly-language (with full hex dumps; see -a)
+  u   work out most useful abbreviations (very very slowly)
+  v3  compile to version-3 ("Standard") story file
+  v4  compile to version-4 ("Plus") story file
+  v5  compile to version-5 ("Advanced") story file: the default
+  v6  compile to version-6 (graphical) story file
+  v8  compile to version-8 (expanded "Advanced") story file
+  w   disable warning messages
+  x   print # for every 100 lines compiled
+  y   trace linking system
+  z   print memory map of the Z-machine
+
+  B   use big memory model (for large V6/V7 files)
+  C0  text character set is plain ASCII only
+  Cu  text character set is UTF-8
+  Cn  text character set is ISO 8859-n (n = 1 to 9)
+      (1 to 4, Latin1 to Latin4; 5, Cyrillic; 6, Arabic;
+       7, Greek; 8, Hebrew; 9, Latin5.  Default is -C1.)
+  D   insert "Constant DEBUG;" automatically
+  E0  Archimedes-style error messages
+  E1  Microsoft-style error messages (current setting)
+  E2  Macintosh MPW-style error messages
+  F1  use temporary files to reduce memory consumption
+  G   compile a Glulx game file
+  H   use Huffman encoding to compress Glulx strings
+  M   compile as a Module for future linking
+  S   compile strict error-checking at run-time (on by default)
+  U   insert "Constant USE_MODULES;" automatically
+  V   print the version and date of this program
+  Wn  header extension table is at least n words (n = 3 to 99)
+  X   compile with INFIX debugging facilities present
+

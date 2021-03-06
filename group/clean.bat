@@ -1,0 +1,29 @@
+@ECHO OFF
+PUSHD %~dp0
+
+ECHO * Cleaning Build Artefacts...
+
+REM # remove shared build artefacts
+DEL /F /S /Q "\EPOC32\BUILD\INFORMER\WINS\DEB\*.*"  >NUL 2>NUL
+DEL /F /S /Q "\EPOC32\BUILD\INFORMER\WINS\REL\*.*"  >NUL 2>NUL
+DEL /F /S /Q "\EPOC32\BUILD\INFORMER\WINS\UDEB\*.*" >NUL 2>NUL
+DEL /F /S /Q "\EPOC32\BUILD\INFORMER\WINS\UREL\*.*" >NUL 2>NUL
+DEL /F /S /Q "\EPOC32\BUILD\INFORMER\MARM\DEB\*.*"  >NUL 2>NUL
+DEL /F /S /Q "\EPOC32\BUILD\INFORMER\MARM\REL\*.*"  >NUL 2>NUL
+DEL /F /S /Q "\EPOC32\BUILD\INFORMER\MARM\UDEB\*.*" >NUL 2>NUL
+DEL /F /S /Q "\EPOC32\BUILD\INFORMER\MARM\UREL\*.*" >NUL 2>NUL
+REM # remove local build artefacts
+DEL /F /Q "\EPOC32\Release\WINS\Deb\INFORM6.*"  >NUL 2>NUL
+DEL /F /Q "\EPOC32\Release\WINS\Rel\INFORM6.*"  >NUL 2>NUL
+DEL /F /Q "\EPOC32\Release\WINS\UDEB\INFORM6.*" >NUL 2>NUL
+DEL /F /Q "\EPOC32\Release\WINS\UREL\INFORM6.*" >NUL 2>NUL
+DEL /F /Q "\EPOC32\Release\MARM\Deb\INFORM6.*"  >NUL 2>NUL
+DEL /F /Q "\EPOC32\Release\MARM\Rel\INFORM6.*"  >NUL 2>NUL
+DEL /F /Q "\EPOC32\Release\MARM\UDEB\INFORM6.*" >NUL 2>NUL
+DEL /F /Q "\EPOC32\Release\MARM\UREL\INFORM6.*" >NUL 2>NUL
+
+ECHO * Make work directories...
+CMD /C makmake -makework inform6 wins
+CMD /C makmake -makework inform6 marm
+
+POPD

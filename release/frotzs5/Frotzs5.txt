@@ -1,0 +1,258 @@
+FrotzS5 V1.8 - an interpreter for all Infocom games. Complies with standard
+1.0 of Graham Nelson's specification. Written by Stefan Jokisch in 1995-7 for Dos
+and ported to the Psion Series 5 by Frédéric Bouvry (C) Copyright 1997-1999.
+Additional work and bug fixes by Simon Quinn.
+
+This port of Frotz is freeware, that means:
+-You may not make money with this software by selling it or by any other way.
+-If you want to put this software on a CD-Rom compilation, email me before
+ to get my agreement. It shouldn't be a problem if you don't charge too much
+ money for the compilation, go to http://www.palmtime.com/frotzs5.html for 
+ contact information.
+-You may not modify the original files.
+-I'm not responsible for any damage this program could cause to your palmtop 
+ or yourself.
+-But you can play for free and copy it for friends as long as you copy all
+ the files included in this distribution.
+
+A good place to get stories is ftp://ftp.gmd.de/if-archive/games/infocom/
+All the stories there ending with .z1 up to .z8 work. Some .z6 games, which rely
+on graphics, may not work. Also Infocom sometimes use .zip extensions for their
+z6 games, these work fine with Frotz.
+Another way to get stories is to buy compilation CD-Roms like
+'The Masterpieces of Infocom': about 21$US for more than 30 stories +
+the original documentations and maps in Adobe Acrobat .pdf format
+(Activision who bought Infocom is still selling those compilations).
+
+Version Information
+-------------------
+-Official FrotzS5 App UID is 0x1000055B
+-Since v1.1 different font sizes can be selected and the toolbar can
+ be turned on/off thus the screen width may be less than 80 columns.
+ ! The majority of the stories asks to Frotz what's the current number
+ of columns then handles this correctly (or just responds 'screen to narrow'
+ but this happens rarely). A few stories (well, I know only one:
+ A Mind Forever Voyaging) don't handle correctly a screen width under about 70
+ columns so you should switch to e.g. mode 70x18 (without toolbar) for AMFV.
+ Dynamic font change during a game is currently not possible. Use 'Terminate Story'
+ or type 'quit' to change the font size between stories.
+ The internal random numbers generator has been improved since v1.1
+ ! Some games record the screen width in their private memory space and
+ this memory space is saved since your first 'save' operation (e.g.: The HitchHiker's
+ Guide To The Galaxy) so you better select you favourite font/screen/toolbar size
+ from the beginning or you may get problems with the title when changing the screen
+ size and restoring a game started with a different screen size.
+ Some games such as Sherlock use the Invisiclues and assume a screen height
+ greater than the current one... same problem as AMFV (see above).
+
+-Since v1.2 you can put your stories and saved files anywhere. Frotz
+ will record in his profile the latest place where you read a story
+ and the place where you put the saved games. It works even on 
+ drive D: (Compact card).  For owner of previous versions, you don't have to 
+ but you can move your C:\Frotz directory anywhere now. After the 
+ first 'Open Story', browse to your new folder where you moved your stories 
+ open one and Frotz will remember where they are for the next Open. The same 
+ applies for the save/restore operations.
+
+-Since v1.3 Frotz uses all the screen height of a Geofox palmtop.
+
+-Since v1.4 Frotz should now work on any sized screen, such as Revo 
+ and Psion7. No toolbar is available on the Revo due to the size of the 
+ screen. Changed by Simon Quinn
+
+-Since v1.5 Memory usage decreased by 2/3. To do this the number of Frotz undo 
+ buffers was reduced from 25 to 2, saving 900Kbytes! Rewrote screen display 
+ code for big performance boost.  Cursor keys now work in Journey & Beyond 
+ Zork. Fixed key timer problem that was causing Arthur to crash.  Fixed border 
+ graphics in Beyond Zork etc. Toolbar buttons tidied up for larger 
+ screens. Changed by Simon Quinn
+
+-Since v1.6 More speed ups for the screen display code. Fixed major Frotz 
+ engine bug when printing inverse text blocks that are taller than the screen, 
+ such as in Sherlock. Squashed a few small bugs. Changed by Simon Quinn.  
+
+-Since v1.7 Fixed the problem where FrotzS5 would forget the Story and Save 
+ paths if they changed from the defaults. Thanks to Lasse Haataja for the fix.
+ Changed by Simon Quinn.
+
+-Since v1.8 Now you can run multiple instances of FrotzS5, for example run a
+ game and also run the Invisiclues. To run more than one instance press the Fn
+ key while tapping the FrotzS5 icon on the Extras Bar.
+ Changed by Simon Quinn.
+
+
+Install procedure:
+------------------
+The easiest and best installation is to use the Frotz SIS package. Otherwise 
+do the following:
+
+The 4 distributed files are FROTZS5.APP, FROZS5.AIF, FROTZS5.RSC and FROTZS5.TXT
+
+1) Make sure you can see the System folder on the Psion by using the check box
+   in the System menu -> Tools -> Preferences -> Show 'System' folder.
+2) Create a new folder called 'FrotzS5' under C:\System\Apps thus C:\System\Apps\FrotzS5
+3) Copy all the files from the distribution to this folder with PsiWin.
+4) Create the folders where you will place the stories and save your games.
+   e.g.: C:\Documents\Frotz\Story, C:\Documents\Frotz\Save (or even on drive D:)
+5) Put the story files you want to play in the folder you created for them.
+   e.g.: C:\Documents\Frotz\Story
+6) Now you should see the FrotzS5 Icon in the Extra Toolbar.
+7) The first time you open a story, save a game or restore a game, you will have
+   to browse to the folder you created but after that, Frotz will remember them.
+
+N.B.: The application can run on a CF card too, e.g.: D:\System\Apps\FrotzS5
+
+Thanks to Stefan Jokisch, the author of Frotz, for giving his sources (Dos Frotz v2.32).
+Without him I wouldn't have made this port.
+Special Thanks to Ian Dean, the porter of Frotz to the WinCE palmtops (FrotzCE),
+for helping me to solve a difficult problem that you should better know when porting Frotz...
+Thanks to Steve Richardson for his support and bug reports.
+Thanks to David Isherwood for making the runtime help file of FrotzS5 (not yet included).
+Thanks to Adam Jackson for beta testing v1.2
+
+Supports all games from V1 to V8. Many V6 graphical games work in text mode, such 
+as Journey, Arthur and Shogun.
+
+Limitations in current version:
+No graphics, no sound.
+
+Known bugs:
+None 
+
+Troubles:
+-Most games need between 300 and 600 Kbytes of RAM so if one doesn't start it is 
+ possible you don't have enough free memory.
+
+
+Documentation from Stefan Jokisch adapted to the Psion Series 5:
+----------------------------------------------------------------
+
+FROTZ V2.32 - an interpreter for all Infocom games. Complies with standard
+1.0 of Graham Nelson's specification. Written by Stefan Jokisch in 1995-7
+    This program once started as a re-make of Mark Howell's Zip, but
+    has grown into an utterly new interpreter.
+
+    Frotz is freeware: It may be used and distributed freely provided
+    no commercial profit is involved. (c) 1995-1997 Stefan Jokisch.
+
+Special keys:
+
+    Ctrl-D - toggle debugging options
+    Ctrl-S - help on hot keys
+    Ctrl-N - new game (restart)
+    Ctrl-P - turn on input line playback
+    Ctrl-R - toggle input line recording on/off
+    Ctrl-U - multiple undo, works even for old V1 to V4 games
+    Ctrl-X - exit game
+
+Psion Shortcuts are displayed in the menu of FrotzS5 like e.g.:
+    Ctrl-E - exit from FrotzS5
+
+Other keys:
+    cursor left         - move one character to the left
+    cursor right        - move one character to the right
+    arrow  left         - move one word to the left
+    arrow  right        - move one word to the right
+    home                - move to beginning of line
+    end                 - move to end of line
+    backspace           - delete character to the left
+    shift-delete        - delete character below cursor
+    escape              - delete whole input line
+    cursor up           - get previous command
+    cursor down         - get next command
+    tab                 - word completion (like "tcsh" under Unix)
+			  e.g.: 'exa' then TAB displays 'examine'
+
+    When you need to type an unpleasantly long word, try to type the
+    first three or four letters then press the tabulator key. If you
+    are lucky, Frotz fills in some or all of the missing letters. A
+    high beep noise indicates that the word is ambiguous; a low beep
+    indicates that it does not exist. Apart from that, you can also
+    use the history feature to get to previous input lines. Type the
+    beginning of the input line you are looking for, then use cursor
+    up/down to scroll through all input lines matching that prefix.
+    e.g: type 'lo' then arrow up/down to retrieve all the commands
+    that you entered that begin with the letters 'lo'.
+    Note: No beep in the Psion Series 5 version.
+
+Questions and answers:
+
+    Q: What is Frotz?
+    A: Frotz runs text adventures which come in so-called story files:
+       ZORK1.DAT, TRINITY.DAT, CURSES.Z5, JIGSAW.Z8, ARTHUR.ZIP etc.
+
+    Q: Where can I find story files to use with Frotz?
+    A: First, you can use the files from your original Infocom games. It
+       is possible to play Atari ST, Amiga or Macintosh games on your PC
+       once you manage to transfer the story files. Some people even
+       extracted story files from old Atari 800, Apple II and C-64 disks
+       (ask your local 8bit guru). Second, there is an increasing number
+       of new games available on the Internet. Check the if-archive at
+       ftp.gmd.de.
+
+    Q: Why does Frotz stop with an error message?
+    A: It might have detected a bug in the story file other interpreters
+       overlooked. It's also possible that the story file is corrupt;
+       be sure to download story files in binary mode, especially when you
+       use a WWW browser.
+
+
+List of fatal errors:
+
+    - "Bad stack frame"
+    - "Byte swapped story file"
+    - "Call to illegal address"
+    - "Call to non-routine" [1]
+    - "Cannot open story file"
+    - "Division by zero"
+    - "Error reading save file"
+    - "Illegal attribute"
+    - "Illegal object" [2]
+    - "Illegal window"
+    - "Illegal window property"
+    - "Jump to illegal address"
+    - "Nesting stream #3 too deep"
+    - "No such property"
+    - "Out of memory"
+    - "Print at illegal address"
+    - "Stack overflow" [3]
+    - "Stack underflow" [4]
+    - "Store out of dynamic memory"
+    - "Story file read error"
+    - "Text buffer overflow"
+    - "Unknown opcode"
+    - "Unknown Z-code version"
+
+    [1] The first byte of a routine must be less than 16.
+    [2] In V4 and above, object numbers > 2000 are considered illegal.
+    [3] Checked on every call instruction.
+    [4] Checked on every return from a subroutine.
+
+    [1] Underlined text is shown in emphasis colour (-e switch).
+    [2] Boldface text is available using the -T switch.
+    [3] ISO Latin 1 characters are replaced with suitable substitutes.
+
+Acknowledgements:
+
+    Many thanks to Paul D. Doherty for his continuing support of this
+    project. Thanks to everyone who sent bug reports, contributions or
+    helpful hints (in alphabetical order):
+
+    Thomas Biskup, Ian Carpenter, Graeme Cree, Jason Dyer,
+    Carl Edman, Julian Eggebrecht, Bernhard Fuchs, Joe Hachem,
+    John Kennedy, Kirk Klobe, Marnix Klooster, John Mackin,
+    Paul O'Brian, Magnus Olsson, Barry Prescott, L. Ross Raszewski,
+    Ambat Sasi Nair, Alan Sherrod, Linards Ticmanis and Paolo Vece.
+
+    Last but not least, thanks to the porters:
+
+    David Kinder (Amiga), Rich Lawrence (Windows 95/NT),
+    Andrew Holdsworth (RiscOS), Christos Dimitrakakis (HP-UX),
+    Christopher J. Madsen (OS/2), Galen Hazelwood (Unix curses library),
+    Ian Dean (Windows CE)... Note: ( I should come here :-) Fred)
+
+    Executables are available from ftp.gmd.de and from
+
+	http://www.geocities.com/SiliconValley/Heights/3222/frotz.html
+
+    which is the Frotz home page maintained by Chris Madsen.

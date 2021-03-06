@@ -1,0 +1,13 @@
+@ECHO OFF & SETLOCAL ENABLEEXTENSIONS DISABLEDELAYEDEXPANSION
+PUSHD %~dp0
+
+SET "VARIANT=%~1"
+IF [%VARIANT%] == [] SET "VARIANT=rel"
+
+CMD /C makmake inform6 marm
+nmake /NOLOGO /S /F INFORM6.MARM %VARIANT%
+
+REM # return the errorlevel of NMAKE,
+REM # instead of the POPD
+REM #
+POPD & EXIT /B %ERRORLEVEL%

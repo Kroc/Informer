@@ -1,0 +1,44 @@
+TARGET		inform6.exe
+TARGETTYPE	exe
+
+UID             0xa11c71da 0
+UNICODEUID      0xa11c71db 0
+
+PROJECT		informer
+SUBPROJECT	inform6-src
+
+SOURCE		arrays.c
+SOURCE		asm.c
+SOURCE		bpatch.c
+SOURCE		chars.c
+SOURCE		directs.c
+SOURCE		errors.c
+SOURCE		expressc.c
+SOURCE		expressp.c
+SOURCE		files.c
+SOURCE		inform.c
+SOURCE		lexer.c
+SOURCE		linker.c
+SOURCE		memory.c
+SOURCE		objects.c
+SOURCE		states.c
+SOURCE		symbols.c
+SOURCE		syntax.c
+SOURCE		tables.c
+SOURCE		text.c
+SOURCE		veneer.c
+SOURCE		verbs.c
+
+SUBPROJECT	src
+SOURCE		cfixes.c
+
+SYSTEMINCLUDE	\epoc32\include 
+SYSTEMINCLUDE	\epoc32\include\libc
+
+#if defined(MARM)
+LIBRARY		ecrt0.o
+#else
+LIBRARY		ecrt0.obj
+#endif
+
+LIBRARY		estlib.lib euser.lib
