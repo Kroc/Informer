@@ -8,5 +8,9 @@ __*
 **/*.mbm
 **/*.zip
 
+# the release binary does not need to be in the repo;
+# we'll produce these locally and zip for release
+release/inform6.exe
+
 # unrelated junk files
 **/Thumbs.db

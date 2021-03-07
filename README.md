@@ -11,6 +11,8 @@ The [IF Archive] has a [build of v6.21](http://www.ifarchive.org/indexes/if-arch
 
 In this repo, I've done the absolutely bear minimum necessary to compile the unmodified Inform6 C code for EPOC32; all credit must go to Graham Nelson for the actual product.
 
+The [PunyInform] library and sample files have been included, however the documentation has not due to file-size concerns; please refer to the [online documentation](https://github.com/johanberntsson/PunyInform/wiki/Manual).
+
 [Inform6]: https://github.com/DavidKinder/Inform6
 [EPOC32]: https://en.wikipedia.org/wiki/EPOC_(operating_system)
 [Series5]: https://en.wikipedia.org/wiki/Psion_Series_5
@@ -25,19 +27,25 @@ To run Inform6 on your device, first download a release. Unzip the file and tran
 
 On most ER3 (Series 5) devices the in-built installer is not provided and you won't be able to open "*.sis" files. In this case open "inst_te.exe"; nothing appears to happen, but this adds the SIS un/install functionality to the device (see the Control Panel).
 
+Once used, "inst_te.exe" can be deleted to save disk space.
+
 ### stdlib.sis — C Standard Library ###
 
 Inform6 requires the C Standard Library to be installed on the device; this is provided as "stdlib.sis".
 
-Both "stdlib.sis" and "inst_te.exe" files are safe to delete after installation.
+Once installed, "stdlib.sis" can be deleted to save disk space; it may be automatically deleted after installation, this is okay.
 
 ### editor/ — Plain Text Editor ###
 
 Psion & EPOC32 devices do not come with a plain-text editor. Whilst you can import & export plain-text files from the native _Word_ application, this is hardly practical. For editing your Inform6 games on the device, installers for the "Symbian Text Editor Application" is provided in the "editor" folder.
 
+The "editor" folder can be deleted after installation to save disk space.
+
 ### frotzs5/ — Frotz Z-Machine Interpreter ###
 
 For _playing_ the games you write, and interactive fiction in general, an installer for "FrotzS5" is provided.
+
+The "frotzs5" folder can be deleted after installation to save disk space.
 
 ## Usage ##
 
@@ -48,7 +56,7 @@ When you open "shell.exe", you will need to navigate to the location of "inform6
 Compile your story file by invoking "inform6", e.g.:
 
 ```
-inform6 mystory.inf
+inform6 +lib mystory.inf
 ```
 
 This will create "mystory.z5" in the same directory, which you can open with _FrotzS5_ to play.
