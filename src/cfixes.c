@@ -11,7 +11,6 @@ extern int remove(const char* path) {
  *
  * Copyright (c) 1996,2008 Oracle.  All rights reserved.
  *
- * $Id$
  */
 /*
  * snprintf --
