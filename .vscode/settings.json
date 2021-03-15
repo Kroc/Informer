@@ -10,6 +10,11 @@
         "**/*.WINS": true, // EPOC emulator makefile
         "**/*.mbm": true, // general EPOC32 graphic file
         "**/*.aif": true, // application metadata / icon file
+        // (not needed in the VSCode IDE)
+        "**/*.exe": true,
+        "**/*.zip": true,
+        "**/*.sis": true,
+        "**/*.SIS": true
     },
     "[cpp]": {
         "editor.rulers": [
