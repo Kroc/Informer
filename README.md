@@ -19,7 +19,7 @@ The [PunyInform] library and sample files have been included, however the docume
 [IF Archive]: http://www.ifarchive.org/
 [PunyInform]: https://github.com/johanberntsson/PunyInform
 
-## Installing ##
+## Installation ##
 
 To run Inform6 on your device, first download a [release](https://github.com/Kroc/Informer/releases). Unzip the file and transfer the files inside to your device (i.e. Compact Flash card or using EPOC Connect).
 
@@ -49,11 +49,23 @@ For _playing_ the games you write, and interactive fiction in general, an instal
 
 The "frotzs5" folder can be deleted after installation to save disk space.
 
-## Usage ##
+## Workflow ##
 
-*This isn't an app with a GUI*, it's a command-line executable! You will need a shell to be able to invoke "inform6.exe" with the desired parameters. EPOC32 doesn't come with a command-line shell, but one is provided in the download for you ("shell.exe").
+Inform6 is not an all-in-one app like other EPOC32 apps (help wanted!), so you will need to use an edit->compile->test workflow.
 
-When you open "shell.exe", you will need to navigate to the location of "inform6.exe" (and your story file) using the command-line. Type `D:`, for example, to switch to the "D" drive (CompactFlash slot). Use `ls` to list directory contents, and `cd` to change directories.
+### Edit: ###
+
+You can write your story files on the device using Editor (mentioned in Installation above) or your plain-text editor of choice (for large games, you might want to try out DSTEdit which can manage multiple files at once).
+
+_How_ to write story files is not covered here, you'll need to read the [Inform Designers Manual 4th Edition](https://www.inform-fiction.org/manual/download_dm4.html) which covers the Inform6 language and the [PunyInform manual](https://github.com/johanberntsson/PunyInform/wiki/manual) which covers adjustments required for the PunyInform library.
+
+(There's nothing stopping you from using the [standard Inform6 library](https://ifarchive.org/indexes/if-archive/infocom/compilers/inform6/library/) but it will produce larger, slower-running binaries.)
+
+### Compile: ###
+
+*Inform6 isn't an app with a GUI*, it's a command-line executable! You will need a shell to be able to invoke "inform6.exe" with the desired parameters. EPOC32 doesn't come with a command-line shell, but one is provided in the download for you ("shell.exe").
+
+When you open "shell.exe", you will need to navigate to the location of "inform6.exe" (and your story file) using the command-line. Type `D:`, for example, to switch to the "D" drive (CompactFlash slot). Use `dir` to list directory contents, and `cd` to change directories.
 
 Compile your story file by invoking "inform6", e.g.:
 
@@ -61,11 +73,19 @@ Compile your story file by invoking "inform6", e.g.:
 inform6 -x +lib mystory.inf
 ```
 
+(`-x` is recommended to display progress and `+lib` includes the PunyInform library.)
+
 This will create "mystory.z5" in the same directory, which you can open with _FrotzS5_ to play.
 
-`-x` is recommended to display progress and `+lib` includes the PunyInform library.
-
 Full command-line parameters for Inform6 are described in "usage.txt".
+
+**NOTE:** The Inform6 binary will *always* open a new console window (instead of re-using the Shell) and there's no way to pause or scroll the output. This is a limitation of the EPOC32 C Standard Library. I would like to resolve this but it requires tricky C / C++ interop that I don't have the knowledge for.
+
+***If you have skills with interfacing C & C++, or Symbian programming experience in general, your help would greatly be appreciated; please contact me at <kroc@camendesign.com>***
+
+### Test: ###
+
+
 
 ## Compiling Inform6 From Source ##
 ### Prerequisites: ###
