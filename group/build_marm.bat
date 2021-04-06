@@ -4,6 +4,7 @@ PUSHD %~dp0
 SET "VARIANT=%~1"
 IF [%VARIANT%] == [] SET "VARIANT=rel"
 
+SET "USERDEFS="
 CMD /C makmake inform6 marm
 nmake /NOLOGO /S /F INFORM6.MARM %VARIANT%
 
