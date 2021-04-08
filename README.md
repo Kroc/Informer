@@ -53,7 +53,9 @@ The "frotzs5" folder can be deleted after installation to save disk space.
 
 Inform6 is not an all-in-one app like other EPOC32 apps (help wanted!), so you will need to use an edit->compile->test workflow.
 
-### Edit: ###
+Since you will be switching regularly between three different apps, I **strongly** recommend installing _FileSwitch_; a utility that let's you switch between open apps using <kbd>CTRL+SPC</kbd>. 
+
+### 1. Edit: ###
 
 You can write your story files on the device using Editor (mentioned in Installation above) or your plain-text editor of choice (for large games, you might want to try out DSTEdit which can manage multiple files at once).
 
@@ -61,7 +63,7 @@ _How_ to write story files is not covered here, you'll need to read the [Inform 
 
 (There's nothing stopping you from using the [standard Inform6 library](https://ifarchive.org/indexes/if-archive/infocom/compilers/inform6/library/) but it will produce larger, slower-running binaries.)
 
-### Compile: ###
+### 2. Compile: ###
 
 *Inform6 isn't an app with a GUI*, it's a command-line executable! You will need a shell to be able to invoke "inform6.exe" with the desired parameters. EPOC32 doesn't come with a command-line shell, but one is provided in the download for you ("shell.exe").
 
@@ -81,16 +83,28 @@ Full command-line parameters for Inform6 are described in "usage.txt".
 
 **NOTE:** The Inform6 binary will *always* open a new console window (instead of re-using the Shell) and there's no way to pause or scroll the output. This is a limitation of the EPOC32 C Standard Library. I would like to resolve this but it requires tricky C / C++ interop that I don't have the knowledge for.
 
-***If you have skills with interfacing C & C++, or Symbian programming experience in general, your help would greatly be appreciated; please contact me at <kroc@camendesign.com>***
+***If you have skills with interfacing C & C++, or Symbian programming experience in general, your help would greatly be appreciated; please contact me at <kroc@camendesign.com>.***
 
-### Test: ###
+### 3. Test: ###
 
+If there are no errors with the compilation, a "z5" (Z-machine) file will be produced using the source file name, i.e. "mystory.z5".
+
+To play the game, open _FrotzS5_:
+
+**NOTE:** You cannot open Z-machine files directly from the file-manager at the moment, an updated version of _FrotZ5_ with file-recognizer support is being worked on.
+
+![Screenshot of FrotzS5, a text-adventure interpreter for Psion devices](readme_frotzs5.png)
+
+Tap "Open Story" and select the ".z5" file to begin playing.
+
+Note that you must quit FrotzS5 or terminate the story (use the button, or type `quit`) before you can run the compiler again.
 
 
 ## Compiling Inform6 From Source ##
-### Prerequisites: ###
 
 If you want to toy with the source code, you'll need to set up a period-accurate EPOC32 development environment; caveat emptor.
+
+### Prerequisites: ###
 
 You will need:
 
