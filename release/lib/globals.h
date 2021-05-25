@@ -3,7 +3,7 @@
 System_file;
 
 Constant PUNYINFORM_MAJOR_VERSION = 2;
-Constant PUNYINFORM_MINOR_VERSION = 1;
+Constant PUNYINFORM_MINOR_VERSION = 5;
 
 #Ifndef VN_1634;
 Message fatalerror "*** The PunyInform library needs Inform v6.34 or later to work ***";
@@ -164,9 +164,18 @@ Fake_Action NotUnderstood;
 Fake_Action PluralFound;
 Fake_Action Going;
 
+Property additive life   $ffff;
+Property initial;
+Property description;
+Property cant_go;
+Property number;
+Property found_in;         !  For fiddly reasons this can't alias
+Property time_left;
+Property additive time_out $ffff;
+Property short_name 0;
+Property additive describe $ffff;
 Property additive before $ffff;
 Property additive after  $ffff;
-Property additive life   $ffff;
 
 Property n_to;  Property s_to; !  Slightly wastefully, these are
 Property e_to;  Property w_to; !  (they might be routines)
@@ -188,67 +197,28 @@ Property se_to;
 Property sw_to;
 #EndIf;
 
-
 Constant N_TO_CONST = n_to;
 Constant OUT_TO_CONST = out_to;
 
-Property door_to     alias n_to;     !  For economy: these properties are
-Property when_closed alias s_to;     !  used only by objects which
-Property with_key    alias e_to;     !  aren't rooms
-Property door_dir    alias w_to;
-Property invent      alias u_to;
-Property add_to_scope alias se_to;
-!Property list_together alias sw_to;
-Property react_before alias out_to;
-Property react_after  alias in_to;
-!Property grammar     alias nw_to;
-Property orders      alias ne_to;
-
-Property initial;
-Property when_open   alias initial;
-Property when_on     alias initial;
-Property when_off    alias when_closed;
-Property inside_description alias d_to;
-Property description;
-Property additive describe $ffff;
-
-Property cant_go;
-Property article alias cant_go;
-
-Property found_in;         !  For fiddly reasons this can't alias
-
-Property time_left;
-Property number;
-Property additive time_out $ffff;
-Property daemon alias time_out;
 Property additive each_turn $ffff;
 
-Property capacity alias nw_to;
-
-Property short_name 0;
-Property parse_name   alias sw_to;
-
-
-! ! directions
-! Property n_to;
-! Property s_to;
-! Property e_to;
-! Property w_to;
-! #IfDef OPTIONAL_FULL_DIRECTIONS;
-! Property ne_to;
-! Property nw_to;
-! Property se_to;
-! Property sw_to;
-! #EndIf;
-! Property u_to;
-! Property d_to;
-! Property in_to;
-! Property out_to;
-
-! Property cant_go;
-! Property door_to alias n_to;
-! Property door_dir alias s_to;
-!Constant OPTIONAL_FULL_DIRECTIONS;
+Property door_to            alias n_to;     !  For economy: these properties
+Property when_closed        alias s_to;     !  are used only by objects which
+Property when_off           alias s_to;     !  aren't rooms
+Property with_key           alias e_to;
+Property door_dir           alias w_to;
+Property orders             alias ne_to;
+Property capacity           alias nw_to;
+Property invent             alias se_to;
+Property inside_description alias sw_to;
+Property react_before       alias u_to;
+Property react_after        alias d_to;
+Property add_to_scope       alias in_to;
+Property parse_name         alias out_to;
+Property when_open          alias initial;
+Property when_on            alias initial;
+Property daemon             alias time_out;
+Property article            alias cant_go;
 
 Constant FAKE_N_OBJ = 10001;
 Constant FAKE_S_OBJ = 10002;
@@ -398,10 +368,17 @@ Global location = INITIAL_LOCATION_VALUE;		! Must be the first global to show lo
 	#EndIf;
 #EndIf;
 
+#Ifdef NO_SCORE;
+Global status_field_1 = NO_SCORE; ! Must be the second global to show score or hours
+#Ifnot;
 Global status_field_1 = 0; ! Must be the second global to show score or hours
+#Endif;
+
 Global status_field_2 = 0; ! Must be the third global to show turns or minutes
 Global real_location;
+#Ifndef NO_SCORE;
 Global score;
+#Endif;
 Global undo_flag;
 Global notify_mode = true;          ! Score notification
 #Ifndef sys_statusline_flag;
@@ -414,11 +391,13 @@ Global time_step;                   ! By how much
 Global lookmode = 1;
 Global player;
 Global actor;
-Global wn;               ! word number within parse
+Global wn;               ! word number within parse array
+Global pattern_pointer;  ! token within current pattern
 Global num_words;        ! number of words typed
 Global action;           ! the current action
 Global action_reverse;   ! if parameters are in reversed order
 Global meta;             ! if the verb has the meta attribute or not
+Global update_moved;     ! if _NoteObjectAcquisitions should update moved
 Global verb_word;        ! verb word, eg 'take' in "take all"
 Global verb_wordnum;     ! the position of the verb in the current sentence
 Global consult_from;     ! Word that a "consult" topic starts on
@@ -456,8 +435,7 @@ Global also_flag;        ! Used by Look
 Global inventory_stage;
 Global phase2_necessary;
 Global receive_action;
-Global scope_copy_actor;
-Global scope_copy_is_good = false;
+Global scope_copy_actor = 0;
 
 #IfDef DEBUG;
 Global dict_start;
@@ -617,6 +595,11 @@ Object Directions
 			selected_direction = direction_properties_array --> selected_direction_index;
 			return 1;
 #IfNot;
+			! This is V3
+#IfnDef OPTIONAL_SHIP_DIRECTIONS;
+			if(normal_directions_enabled == 0)
+				jump fail;
+#EndIf;
 			_w1 = _parse->2; ! length of typed word
 			if(_w1 > 6)
 				_w1 = 6;
@@ -625,18 +608,25 @@ Object Directions
 				_len = _dir_end->_w1;
 !				print "Testing from ", _i, " to ", _len, "^";
 !				for(_i = 1 : _i <= _len : _i++) {
+
+
 .checkNextDir;
+#IfDef OPTIONAL_SHIP_DIRECTIONS;
 				if(normal_directions_enabled) {
 					@loadw abbr_direction_array _i -> _w1;
 					@loadw full_direction_array _i -> _w2;
 					@je _w _w1 _w2 ?match;
 				}
-#IfDef OPTIONAL_SHIP_DIRECTIONS;
 				if(ship_directions_enabled) {
 					@loadw abbr_ship_direction_array _i -> _w1;
 					@loadw full_ship_direction_array _i -> _w2;
 					@je _w _w1 _w2 ?match;
 				}
+#IfNot;
+				! No ship directions, and we know normal_directions_enabled==1
+				@loadw abbr_direction_array _i -> _w1;
+				@loadw full_direction_array _i -> _w2;
+				@je _w _w1 _w2 ?match;
 #EndIf;
 				@inc_chk _i _len ?~checkNextDir;
                 jump fail;
@@ -647,10 +637,14 @@ Object Directions
     			return 1;
 			}
 .fail;
-      		! failure
+      		! No direction was matched
 			selected_direction_index = 0;
 			selected_direction = 0;
 			return 0;
 #EndIf;
 		]
-has scenery proper;
+has scenery proper
+#Ifdef OPTIONAL_REACTIVE_PARSE_NAME;
+		reactive
+#Endif;
+;

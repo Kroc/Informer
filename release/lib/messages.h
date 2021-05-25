@@ -17,9 +17,6 @@ Constant MSG_TAKE_SCENERY "That's hardly portable.";
 #Ifndef MSG_TAKE_STATIC;
 Constant MSG_TAKE_STATIC "That's fixed in place.";
 #EndIf;
-#Ifndef MSG_TAKE_ALREADY_HAVE;
-Constant MSG_TAKE_ALREADY_HAVE "You already have that.";
-#EndIf;
 #Ifndef MSG_TAKE_NO_CAPACITY;
 Constant MSG_TAKE_NO_CAPACITY "You are carrying too many things already.";
 #EndIf;
@@ -261,11 +258,13 @@ Default MSG_SEARCH_EMPTY 82;
 Default MSG_SEARCH_NOTHING_ON 83;
 Default MSG_SEARCH_CANT_SEE_CLOSED 84;
 Default MSG_EAT_SUCCESS = 85;
-#IfDef OPTIONAL_FULL_SCORE;
+#Ifdef OPTIONAL_FULL_SCORE;
 Default MSG_FULLSCORE_START 86;
 Default MSG_FULLSCORE_END 87;
-#EndIf;
+#Endif;
+#Ifndef NO_SCORE;
 Default MSG_SCORE_SUCCESS 88;
+#Endif;
 Default MSG_UNLOCK_NOT_A_LOCK 89;
 Default MSG_UNLOCK_ALREADY_UNLOCKED 90;
 Default MSG_UNLOCK_KEY_DOESNT_FIT 91;
@@ -280,7 +279,7 @@ Default MSG_EXAMINE_ONOFF 97;
 Default MSG_ORDERS_WONT 98;
 Default MSG_AUTO_TAKE 99;
 Default MSG_AUTO_DISROBE = 100;
-! 101 is currently unused
+Default MSG_PARSER_PARTIAL_MATCH = 101;
 Default MSG_TAKE_BELONGS 102;
 Default MSG_TAKE_PART_OF 103;
 Default MSG_TAKE_NOT_AVAILABLE 104;
@@ -301,7 +300,14 @@ Default MSG_INSERT_NOT_CONTAINER 118;
 Default MSG_EMPTY_CANT_CONTAIN 119; ! Extended verbset, but uses same msg as INSERT
 Default MSG_YES_OR_NO 120;
 Default MSG_RESTART_CONFIRM 121;
+#Ifndef NO_SCORE;
 Default MSG_PARSER_NEW_SCORE 122;
+#Endif;
+Default MSG_CLIMB_ANIMATE 123;
+Default MSG_CLIMB_DEFAULT 124;
+Default MSG_PARSER_BAD_PATTERN_PREFIX 125;
+Default MSG_PARSER_BAD_PATTERN_SUFFIX 126;
+Default MSG_TAKE_ALREADY_HAVE 127;
 
 #IfDef OPTIONAL_PROVIDE_UNDO_FINAL;
 #Ifndef MSG_UNDO_NOTHING_DONE;
@@ -436,7 +442,7 @@ Default LibraryMessages 0;
 		print_ret (CTheyreorThats) noun, " fixed in place.";
 	MSG_TURN_SCENERY, MSG_PUSH_SCENERY, MSG_PULL_SCENERY:
 		"What a concept!";
-	MSG_TURN_ANIMATE, MSG_PUSH_ANIMATE, MSG_PULL_ANIMATE:
+	MSG_TURN_ANIMATE, MSG_PUSH_ANIMATE, MSG_PULL_ANIMATE, MSG_CLIMB_ANIMATE:
 		"That would be less than courteous.";
 	MSG_DROP_NOT_HOLDING, MSG_SHOW_NOT_HOLDING, MSG_GIVE_NOT_HOLDING,
 		MSG_WEAR_NOT_HOLDING:
@@ -468,14 +474,12 @@ Default LibraryMessages 0;
 		"You ", (verbname) p_arg_1, " ", (the) noun, ".";
 	MSG_GIVE_SUCCESS, MSG_SHOW_SUCCESS:
 		print_ret (The) second, " doesn't seem interested.";
-	MSG_ASKFOR_SUCCESS, MSG_ASKTO_SUCCESS:
-		print_ret (The) noun, " has better things to do.";
+	MSG_ASKFOR_SUCCESS, MSG_ASKTO_SUCCESS, MSG_ORDERS_WONT:
+		print_ret (The) p_arg_1, " has better things to do.";
 	MSG_ENTER_NOT_OPEN, MSG_EXIT_NOT_OPEN, MSG_INSERT_NOT_OPEN, MSG_GO_DOOR_CLOSED:
 		"You can't, since ",(the) p_arg_1, " is closed.";
-#IfTrue MSG_GIVE_PLAYER < 1000;
-	MSG_GIVE_PLAYER:
+	MSG_GIVE_PLAYER, MSG_TAKE_ALREADY_HAVE:
 		"You already have ", (ItorThem) noun, ".";
-#EndIf;
 	MSG_SAVE_FAILED, MSG_RESTORE_FAILED, MSG_RESTART_FAILED:
 		"Failed ", (verbname) verb_word, ".";
 	MSG_INSERT_ALREADY, MSG_PUTON_ALREADY:
@@ -524,10 +528,22 @@ Default LibraryMessages 0;
 #Endif;
 #IfTrue MSG_PARSER_NOTHING_TO_VERB < 1000;
 	MSG_PARSER_NOTHING_TO_VERB:
-		"There is nothing to ",  (verbname) verb_word,".";
+		if(action == ##Drop or ##Insert && (parse + 2 + (p_arg_1 - 2) *4)-->0 == ALL_WORD) {
+			"You are not carrying anything.";
+		}  else {
+			print "There are no things available that match ~";
+			_PrintPartialMatch(verb_wordnum, p_arg_1 - 1);
+			"~.";
+		}
 #EndIf;
 	MSG_PARSER_NOT_HOLDING, MSG_WAVE_NOTHOLDING:
 		print_ret "But you are not holding ", (the) p_arg_1, ".";
+#IfTrue MSG_PARSER_PARTIAL_MATCH < 1000;
+	MSG_PARSER_PARTIAL_MATCH:
+		print "I only understood you as far as ~";
+		_PrintPartialMatch(verb_wordnum, p_arg_1);
+		"~ but then you lost me.";
+#EndIf;
 #IfTrue MSG_PARSER_CANT_TALK < 1000;
 	MSG_PARSER_CANT_TALK:
 		print_ret "You can't talk to ", (the) p_arg_1, ".";
@@ -544,13 +560,22 @@ Default LibraryMessages 0;
 			_PrintUnknownWord();
 			print_ret "~ means.";
 #EndIf;
+#IfTrue MSG_PARSER_BAD_PATTERN_PREFIX < 1000;
+	MSG_PARSER_BAD_PATTERN_PREFIX:
+		print "I think you wanted to say ~";
+		rtrue;
+#EndIf;
+#IfTrue MSG_PARSER_BAD_PATTERN_SUFFIX < 1000;
+	MSG_PARSER_BAD_PATTERN_SUFFIX:
+		"~. Please try again.";
+#EndIf;
 	MSG_TOUCHABLE_FOUND_CLOSED, MSG_PARSER_CONTAINER_ISNT_OPEN, MSG_CLOSE_NOT_OPEN:
 		print_ret (CObjIs) p_arg_1, "n't open.";
 #IfTrue MSG_CONSULT_NOTHING_INTERESTING < 1000;
 	MSG_CONSULT_NOTHING_INTERESTING:
 		"You discover nothing of interest in ", (the) second, ".";
 #EndIf;
-	MSG_CUT_NO_USE, MSG_JUMP_OVER, MSG_TIE_DEFAULT:
+	MSG_CUT_NO_USE, MSG_JUMP_OVER, MSG_TIE_DEFAULT, MSG_CLIMB_DEFAULT:
 		"You would achieve nothing by this.";
 	MSG_LOCK_ALREADY_LOCKED, MSG_UNLOCK_ALREADY_UNLOCKED:
 		print_ret (CObjIs) noun, " already ", (verbname) p_arg_1, "ed.";
@@ -568,15 +593,19 @@ Default LibraryMessages 0;
 #EndIf;
 #IfTrue MSG_SEARCH_IN_IT_ISARE < 1000;
 	MSG_SEARCH_IN_IT_ISARE:
-		print "In ";
-		SearchInOnNoun();
-		rtrue;
+		print (The) noun, " contains ";
+		PrintContents(0, noun);
+		".";
 #EndIf;
 #IfTrue MSG_SEARCH_ON_IT_ISARE < 1000;
 	MSG_SEARCH_ON_IT_ISARE:
-		print "On ";
-		SearchInOnNoun();
-		rtrue;
+		print "On ", (the) noun;
+		if (children(noun) == 1 && child(noun) hasnt pluralname)
+			print " is ";
+		else
+			print " are ";
+		PrintContents(0, noun);
+		".";
 #EndIf;
 #IfTrue MSG_SEARCH_EMPTY < 1000;
 	MSG_SEARCH_EMPTY:
@@ -600,10 +629,6 @@ Default LibraryMessages 0;
 #EndIf;
 MSG_RUB_DEFAULT, MSG_SQUEEZE_DEFAULT:
 	"You achieve nothing by this.";
-#IfTrue MSG_ORDERS_WONT < 1000;
-	MSG_ORDERS_WONT:
-		print_ret (The) actor, " has better things to do.";
-#EndIf;
 #IfTrue MSG_TAKE_NOT_AVAILABLE < 1000;
 	MSG_TAKE_NOT_AVAILABLE:
 		print_ret (CObjIs) noun, " not available.";
@@ -620,13 +645,15 @@ MSG_RUB_DEFAULT, MSG_SQUEEZE_DEFAULT:
 	MSG_EXAMINE_DARK, MSG_SEARCH_DARK:
 		"But it's dark.";
 #Endif;
-#IfTrue MSG_SCORE_SUCCESS < 1000;
+#Ifndef NO_SCORE;
+#Iftrue MSG_SCORE_SUCCESS < 1000;
 	MSG_SCORE_SUCCESS:
 		if (deadflag) print "In that game you"; else print "You have so far";
 		print " scored ", score, " out of a possible ", MAX_SCORE, ", in ", turns, " turn";
 		if(turns ~= 1) print "s";
 		rtrue;
-#EndIf;
+#Endif;
+#Endif;
 #IfDef OPTIONAL_FULL_SCORE;
 #IfTrue MSG_FULLSCORE_START < 1000;
 	MSG_FULLSCORE_START:
@@ -656,12 +683,12 @@ MSG_RUB_DEFAULT, MSG_SQUEEZE_DEFAULT:
 #EndIf;
 #IfTrue MSG_YOU_HAVE_WON < 1000;
 	MSG_YOU_HAVE_WON: ! print and rtrue to avoid newline
- 		print "You have won.";
+ 		print "You have won";
  		rtrue;
 #EndIf;
 #IfTrue MSG_YOU_HAVE_DIED < 1000;
 	MSG_YOU_HAVE_DIED: ! print and rtrue to avoid newline
-		print "You have died.";
+		print "You have died";
 		rtrue;
 #EndIf;
 #IfTrue MSG_ENTER_BAD_LOCATION < 1000;
@@ -683,7 +710,8 @@ MSG_RUB_DEFAULT, MSG_SQUEEZE_DEFAULT:
 	MSG_RESTART_CONFIRM:
 		print "Are you sure you want to restart? ";
 #Endif;
-#IfTrue MSG_PARSER_NEW_SCORE < 1000;
+#Ifndef NO_SCORE;
+#Iftrue MSG_PARSER_NEW_SCORE < 1000;
 	MSG_PARSER_NEW_SCORE:
 		print "^[The score has just gone ";
 		if(p_arg_1 < score) {
@@ -697,6 +725,9 @@ MSG_RUB_DEFAULT, MSG_SQUEEZE_DEFAULT:
 		if(p_arg_2 > 1) print "s";
 		print ".]^";
 #Endif;
+#Endif;
+
+
 
 
 #IfDef OPTIONAL_EXTENDED_VERBSET;
@@ -726,11 +757,6 @@ default:
 		! No code found. Print an error message.
 		RuntimeError(ERR_UNKNOWN_MSGNO);
 	}
-];
-
-[ SearchInOnNoun;
-	print (the) noun, " is ";
-	if(PrintContents(0, noun)) print ".^";
 ];
 
 [OnOff obj;

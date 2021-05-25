@@ -130,7 +130,11 @@ Object CheapScenery "object"
 			}
 			print_ret (string) _k;
 		],
+#Ifdef SceneryReply;
 		before [i w1;
+#Ifnot;
+		before [;
+#Endif;
 			Examine:
 				rfalse;
 			default:
@@ -147,4 +151,8 @@ Object CheapScenery "object"
 		found_in [;
 			if(location provides cheap_scenery) rtrue;
 		],
-	has concealed scenery;
+	has concealed scenery
+#Ifdef OPTIONAL_REACTIVE_PARSE_NAME;
+		reactive
+#Endif;
+;

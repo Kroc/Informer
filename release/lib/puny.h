@@ -202,7 +202,28 @@ Constant ONE_SPACE_STRING = " ";
 	}
 ];
 
+#Ifdef NO_SCORE;
+[ _PrintStatusLineScore p_width _pos;
+#Ifnot;
 [ _PrintStatusLineScore p_width;
+#Endif;
+#Ifdef NO_SCORE;
+	if (p_width > 24) {
+		if (p_width < 30) {
+			! Width is 25-29, only print moves as "0"
+			_PrintSpacesOrMoveBack(3, ONE_SPACE_STRING);
+		} else {
+			! Width is 30-, print "Moves: 0"
+			_pos = 10;
+			if (p_width > 52) {
+				! Width is 53+, leave some space to the right
+				_pos = 14;
+			}
+			_PrintSpacesOrMoveBack(_pos, MOVES__TX);
+		}
+		print status_field_2;
+	}
+#Ifnot;
 	if (p_width > 24) {
 		if (p_width < 30) {
 			! Width is 25-29, only print score as "0", no moves
@@ -228,6 +249,7 @@ Constant ONE_SPACE_STRING = " ";
 			print status_field_2;
 		}
 	}
+#Endif;
 ];
 
 [ DrawStatusLine _width _visibility_ceiling;
@@ -445,11 +467,13 @@ else
 ];
 
 [ RunRoutines p_obj p_prop p_switch;
+#Ifndef OPTIONAL_NO_DARKNESS;
+	if(p_obj == thedark && p_prop ~= initial or short_name or description) p_obj = real_location;
+#Endif;
 	if(p_switch == 0) sw__var = action; else sw__var = p_switch;
 	if (p_obj.&p_prop == 0 && p_prop >= INDIV_PROP_START) rfalse;
 	return p_obj.p_prop();
 ];
-
 
 [ PrintOrRun p_obj p_prop p_no_string_newline _val;
 	_val = p_obj.p_prop;
@@ -464,8 +488,15 @@ else
 	_stop = top_object + 1;
 	for(_i = Directions : _i < _stop : _i++) {
 #Ifndef OPTIONAL_MANUAL_REACTIVE;
-		if(_i.&react_before ~= 0 || _i.&react_after ~= 0 || _i.&each_turn ~= 0)
+#Ifdef OPTIONAL_REACTIVE_PARSE_NAME;
+		if(_i.&react_before ~= 0 || _i.&react_after ~= 0 || _i.&each_turn ~= 0 ||
+				_i.&add_to_scope ~= 0 || _i.&parse_name ~= 0)
 			give _i reactive;
+#Ifnot;
+		if(_i.&react_before ~= 0 || _i.&react_after ~= 0 || _i.&each_turn ~= 0 ||
+				_i.&add_to_scope ~= 0)
+			give _i reactive;
+#Endif;
 #Endif;
 		if(_i.&found_in) {
 #IfTrue RUNTIME_ERRORS > RTE_MINIMUM;
@@ -513,6 +544,7 @@ else
 			remove _obj;
 		_i++;
 	}
+	scope_modified = true;
 ];
 
 [ PlayerTo p_loc p_flag _old_loc _old_real_loc _old_lookmode _old_parent _vc _old_vc;
@@ -612,9 +644,9 @@ Include "parser.h";
 
 [ PerformPreparedAction;
 #IfDef DEBUG;
-	if(debug_flag & 2) TraceAction(action, noun, second);
+	if(debug_flag & 2) TraceAction();
 #EndIf;
-	if ((BeforeRoutines() == false) && action < 4096) {
+	if ((meta || (BeforeRoutines() == false)) && action < 4096) {
 		ActionPrimitive();
 		return true; ! could run the command
 	}
@@ -648,6 +680,22 @@ Include "parser.h";
 			RunRoutines(_obj, each_turn);
 		}
 		@inc_chk _i _max ?~next_entry;
+	}
+];
+
+[ _NoteObjectAcquisitions _i;
+	objectloop(_i in player) {
+		if(_i hasnt moved) {
+			give _i moved;
+#IfDef OPTIONAL_SCORED;
+			if(_i has scored) {
+				score = score + OBJECT_SCORE;
+#IfDef OPTIONAL_FULL_SCORE;
+				things_score = things_score + OBJECT_SCORE;
+#EndIf;
+			}
+#EndIf;
+		}
 	}
 ];
 
@@ -693,14 +741,14 @@ Include "parser.h";
 		@inc_chk _i _max ?~next_entry;
 	}
 #IfDef DEBUG;
-	if(debug_flag & 1) print "(", (name) location, ").before()^";
+	if(debug_flag & 1) print "(", (name) real_location, ").before()^";
 #EndIf;
-	if(location.&before) {
+	if(real_location.&before) {
 #Ifndef OPTIONAL_MANUAL_SCOPE;
 		! Assume that every routine may modify the scope
 		scope_modified = true;
 #EndIf;
-		if(RunRoutines(location, before)) rtrue;
+		if(RunRoutines(real_location, before)) rtrue;
 	}
 	if(inp1 > 1) {
 #IfDef DEBUG;
@@ -743,14 +791,14 @@ Include "parser.h";
 		@inc_chk _i _max ?~next_entry;
 	}
 #IfDef DEBUG;
-	if(debug_flag & 1) print "(", (name) location, ").after()^";
+	if(debug_flag & 1) print "(", (name) real_location, ").after()^";
 #EndIf;
-	if(location.&after) {
+	if(real_location.&after) {
 #Ifndef OPTIONAL_MANUAL_SCOPE;
 		! Assume that every routine may modify the scope
 		scope_modified = true;
 #EndIf;
-		if(RunRoutines(location, after)) rtrue;
+		if(RunRoutines(real_location, after)) rtrue;
 	}
 	if(inp1 > 1) {
 #IfDef DEBUG;
@@ -826,26 +874,34 @@ Include "parser.h";
 	print "(attribute ", p_attr, ")";
 ];
 
-[ DebugParameter _w;
-    print _w;
-    if (_w >= 1 && _w <= top_object) print " (", (name) _w, ")";
-    if (UnsignedCompare(_w, dict_start) >= 0 &&
-            UnsignedCompare(_w, dict_end) < 0 &&
-            (_w - dict_start) % dict_entry_size == 0)
-        print " ('", (address) _w, "')";
+[ DebugParameter p_w;
+    print p_w;
+    if (p_w >= 1 && p_w <= top_object) print " (", (name) p_w, ")";
+    if (UnsignedCompare(p_w, dict_start) >= 0 &&
+            UnsignedCompare(p_w, dict_end) < 0 &&
+            (p_w - dict_start) % dict_entry_size == 0)
+        print " ('", (address) p_w, "')";
 ];
 
-[ DebugAction a anames;
-    if (a >= 4096) { print "<fake action ", a-4096, ">"; return; }
-    anames = #identifiers_table;
-    anames = anames + 2*(anames-->0) + 2*48;
-    print (string) anames-->a;
+[ DebugAction p_a _anames;
+    if (p_a >= 4096) { print "<fake action ", p_a-4096, ">"; return; }
+    _anames = #identifiers_table;
+    _anames = _anames + 2*(_anames-->0) + 2*48;
+    print (string) _anames-->p_a;
 ];
 
-[ TraceAction p_action p_noun p_second;
-	print "[ Action ", (DebugAction) p_action;
-    if (p_noun ~= 0)   print " with noun ", (DebugParameter) p_noun;
-    if (p_second ~= 0) print " and second ", (DebugParameter) p_second;
+[ TraceAction;
+	print "[ Action ", (DebugAction) action;
+    if (noun ~= 0) {
+		print " with noun ";
+		if(inp1 == 1) print noun;
+		else print (DebugParameter) noun;
+		if (second ~= 0) {
+			print " and second ";
+			if(inp2 == 1) print second;
+			else print (DebugParameter) second;
+		}
+	}
     print "]^";
 ];
 
@@ -1228,9 +1284,7 @@ Object thedark "Darkness"
 	with
 		initial 0,
 		description "It is pitch dark here!",
- 		short_name 0,
-		before 0,
-		after 0;
+ 		short_name 0;
 #Endif;
 
 [ _UpdateScoreOrTime;
@@ -1239,11 +1293,15 @@ Object thedark "Darkness"
 	status_field_2 = the_time%60;
 #Ifnot;
 	#Ifdef STATUSLINE_SCORE;
+	#Ifndef NO_SCORE;
 		status_field_1 = score;
+	#Endif;
 		status_field_2 = turns;
 	#Ifnot;
 		if (sys_statusline_flag == 0) {
-			status_field_1 = score;
+			#Ifndef NO_SCORE;
+				status_field_1 = score;
+			#Endif;
 			status_field_2 = turns;
 		} else {
 			status_field_1 = the_time/60;
@@ -1274,6 +1332,10 @@ Object thedark "Darkness"
 #Ifndef OPTIONAL_NO_DARKNESS;
 	_UpdateDarkness(true);
 #Endif;
+	if(update_moved) {
+		_NoteObjectAcquisitions();
+		update_moved = false;
+	}
 ];
 
 #Ifdef OPTIONAL_PROVIDE_UNDO_FINAL;
@@ -1299,8 +1361,11 @@ Object thedark "Darkness"
 ];
 #Endif;
 
+#Ifdef NO_SCORE;
+[ main _i _j _copylength _sentencelength _parsearraylength _again_saved _parser_oops _disallow_complex_again;
+#Ifnot;
 [ main _i _j _copylength _sentencelength _parsearraylength _score _again_saved _parser_oops _disallow_complex_again;
-
+#Endif;
 #IfDef DEBUG;
 	dict_start = HDR_DICTIONARY-->0;
 	dict_entry_size = dict_start->(dict_start->0 + 1);
@@ -1320,7 +1385,10 @@ Object thedark "Darkness"
 
 	player = selfobj;
 	deadflag = GS_PLAYING;
+	turns = -1;
+#Ifndef NO_SCORE;
 	score = 0;
+#Endif;
 #IfDef OPTIONAL_FULL_SCORE;
 #IfDef OPTIONAL_SCORED;
 	places_score = 0;
@@ -1337,6 +1405,7 @@ Object thedark "Darkness"
 	_j = Initialise();
 
 	objectloop (_i in player) give _i moved ~concealed;
+	update_moved = false;
 
 	if(_j ~= 2) {
 		Banner();
@@ -1347,6 +1416,7 @@ Object thedark "Darkness"
 	if(parent(player) == 0) { _i = location; location = 0; PlayerTo(_i); }
 
 	@new_line;
+	turns++; ! Change turns from -1 to 0, signaling that game has now started
 	while(deadflag == GS_PLAYING) {
 #Ifdef DEBUG_TIMER;
 	timer1 = 0-->2;
@@ -1356,7 +1426,9 @@ Object thedark "Darkness"
 		if(_sentencelength > 0) @new_line;
 
 		_UpdateScope(player);
+#Ifndef NO_SCORE;
 		_score = score;
+#Endif;
 #Ifdef DEBUG_TIMER;
 	timer1 = 0-->2 - timer1;
 	print "[Before ReadPlayerInput took ",timer1," jiffies]^";
@@ -1424,8 +1496,14 @@ Object thedark "Darkness"
 			_CopyParseArray(parse, parse2);
 		}
 
-		if(_sentencelength <= 0) _sentencelength = -_sentencelength;
-		else _sentencelength = parse->1;
+		if(_sentencelength <= 0) {
+			_sentencelength = -_sentencelength;
+		} else {
+			! _ParseAndPerformAction found a problem and
+			! printed an error message. We set _sentencelength
+			! to the end of the line to force new user input
+			_sentencelength = parse->1;
+		}
 		if(action >= 0 && meta == false) {
 			EndTurnSequence();
         }
@@ -1436,9 +1514,11 @@ Object thedark "Darkness"
         	AfterLife();
 		}
 
+#Ifndef NO_SCORE;
 		if(_score ~= score && notify_mode == true) {
 			PrintMsg(MSG_PARSER_NEW_SCORE, _score);
 		}
+#Endif;
 
 		_parsearraylength = parse->1;
 		if(_parsearraylength > _sentencelength) {
@@ -1468,12 +1548,20 @@ Object thedark "Darkness"
 	_UpdateScoreOrTime();
 	@new_line;
 	if(deadflag == GS_QUIT) @quit;
+#ifV5;
+	style bold;
+#Endif;
 	print "^  *** ";
 	if(deadflag == GS_WIN) PrintMsg(MSG_YOU_HAVE_WON);
 	else if(deadflag == GS_DEAD) PrintMsg(MSG_YOU_HAVE_DIED);
 	else if(deadflag >= GS_DEATHMESSAGE) DeathMessage();
 	print " ***^^";
+#ifV5;
+	style roman;
+#Endif;
+#Ifndef NO_SCORE;
 	ScoreSub();
+#Endif;
 	for(::) {
 		PrintMsg(MSG_RESTART_RESTORE_OR_QUIT);
 		_ReadPlayerInput(true);

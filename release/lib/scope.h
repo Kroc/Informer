@@ -8,7 +8,7 @@
 
 System_file;
 
-[ _PerformAddToScope p_obj _add_obj _i _len _addr;
+[ _PerformAddToScope p_obj _add_obj _i _len _addr _n;
 	_addr = p_obj.&add_to_scope;
 	if(_addr) {
 		! routine or a list of objects
@@ -22,7 +22,10 @@ System_file;
 			for(_i = 0: _i  < _len: _i++) {
 				_add_obj =  _addr --> _i;
 				if(_add_obj) {
+					_n = scope_objects;
 					_PutInScope(_add_obj);
+					if(scope_objects > _n && _add_obj has reactive)
+						_PerformAddToScope(_add_obj);
 					_SearchScope(child(_add_obj));
 #IfDef DEBUG_SCOPE;
 					print _i, ": ", _add_obj, "^";
@@ -53,7 +56,7 @@ System_file;
 !		scope-->(scope_objects++) = p_obj;
 
 		! Add_to_scope
-		if(p_no_add == 0) _PerformAddToScope(p_obj);
+		if(p_no_add == 0 && p_obj has reactive) _PerformAddToScope(p_obj);
 
 		_child = child(p_obj);
 		if(_child ~= 0 && (p_obj has supporter || p_obj has transparent || (p_obj has container && p_obj has open)))
@@ -93,8 +96,8 @@ System_file;
 	scope-->(scope_objects++) = p_obj;
 ];
 
-[ _UpdateScope p_actor p_force _start_pos _i _initial_scope_objects
-		_current_scope_objects _risk_duplicates;
+[ _UpdateScope p_actor p_force _start_pos _i _obj _initial_scope_objects
+		_current_scope_objects _risk_duplicates _scope_base;
 	if(p_actor == 0) p_actor = player;
 
 	if(scope_stage == 2) {
@@ -111,8 +114,8 @@ System_file;
 	print "*** Call to UpdateScope for ", (the) p_actor, "^";;
 #EndIf;
 	if(scope_pov == p_actor && scope_modified == false && p_force == false) return;
-	
-	scope_copy_is_good = false;
+
+	scope_copy_actor = 0;
 	scope_pov = p_actor;
 	_start_pos = ScopeCeiling(p_actor);
 
@@ -137,23 +140,24 @@ System_file;
 		_PutInScope(_start_pos, _risk_duplicates);
 	}
 
-#Ifdef OPTIONAL_NO_DARKNESS;
 	! Add all in player location (which may be inside an object)
-	_SearchScope(child(_start_pos), _risk_duplicates, true);
-#Ifnot;
+	_scope_base = _start_pos;
+#Ifndef OPTIONAL_NO_DARKNESS;
 	if(location == thedark && p_actor == player) {
-		! only the player's possessions are in scope
+		! only the player's possessions and whatever is in the dark are in scope
 		_PutInScope(player, _risk_duplicates);
 		_SearchScope(child(player), _risk_duplicates, true);
-	} else {
-		! Add all in player location (which may be inside an object)
-		_SearchScope(child(_start_pos), _risk_duplicates, true);
+		_scope_base = location;
 	}
 #Endif;
+	_SearchScope(child(_scope_base), _risk_duplicates, true);
 
 	_current_scope_objects = scope_objects;
-	for(_i = _initial_scope_objects : _i < _current_scope_objects : _i++)
-		_PerformAddToScope(scope-->_i);
+	for(_i = _initial_scope_objects : _i < _current_scope_objects : _i++) {
+		_obj = scope-->_i;
+		if(_obj has reactive)
+			_PerformAddToScope(_obj);
+	}
 
 	scope_modified = false;
 #IfDef DEBUG_SCOPE;
@@ -171,7 +175,7 @@ System_file;
 
 	_UpdateScope(p_actor);
 
-	if(scope_copy_actor ~= p_actor || scope_copy_is_good == false) {
+	if(scope_copy_actor ~= p_actor) {
 #IfV5;
 		_i = scope_objects * 2;
 		@copy_table scope scope_copy _i;
@@ -184,7 +188,6 @@ System_file;
 		}
 #EndIf;
 		scope_copy_actor = p_actor;
-		scope_copy_is_good = true;
 	}
 	return scope_objects;
 ];
@@ -228,10 +231,11 @@ System_file;
 ];
 
 Constant PlaceInScope = _PutInScope;
+Constant AddToScope = _PutInScope;
 
 ! [ PlaceInScope p_obj _i;
 	! ! DM: PlaceInScope(obj)
-	! ! Used in “scope routines” (only) when scope_stage is set to 2 (only).
+	! ! Used in "scope routines" (only) when scope_stage is set to 2 (only).
 	! ! Places obj in scope for the token currently being parsed. No other
 	! ! objects are placed in scope as a result of this, unlike the case of
 	! ! ScopeWithin. No return value
@@ -258,7 +262,7 @@ Constant PlaceInScope = _PutInScope;
 
 [ ScopeWithin p_obj _child;
 	! DM: ScopeWithin(obj)
-	! Used in “scope routines” (only) when scope_stage is set to 2 (only).
+	! Used in "scope routines" (only) when scope_stage is set to 2 (only).
 	! Places the contents of obj in scope for the token currently being
 	! parsed, and applies the rules of scope recursively so that contents of
 	! see-through objects are also in scope, as is anything added to scope.
@@ -289,26 +293,31 @@ Constant PlaceInScope = _PutInScope;
 		p_actor = player;
 
 	_UpdateScope(p_actor);
+#IfV5;
+	@scan_table p_obj scope scope_objects -> _i ?~failed;
+	rtrue;
+.failed;
+#IfNot;
 	for(_i = 0: _i < scope_objects: _i++) {
 		if(scope-->_i == p_obj) rtrue;
 	}
+#EndIf;
 	rfalse;
 ];
 
-[ _ObjectScopedBySomething p_item _i _j _k _l _m;
-	_i = p_item;
-	objectloop (_j .& add_to_scope) {
+[ _ObjectScopedBySomething p_obj _j _k _l _m;
+	objectloop (_j has reactive && (_j.&add_to_scope ~= 0)) {
 		_l = _j.&add_to_scope;
 		if (_l-->0 ofclass Routine) continue;
 #IfV5;
 		_k = _j.#add_to_scope;
 		@log_shift _k (-1) -> _k;
-		@scan_table _i _l _k -> _m ?~failed;
+		@scan_table p_obj _l _k -> _m ?~failed;
 		return _j;
 .failed;
 #IfNot;
 		_k = (_j.#add_to_scope)/WORDSIZE;
-		for (_m=0 : _m<_k : _m++) if (_l-->_m == _i) return _j;
+		for (_m=0 : _m<_k : _m++) if (_l-->_m == p_obj) return _j;
 #EndIf;
 	}
 	rfalse;
@@ -347,7 +356,7 @@ Constant PlaceInScope = _PutInScope;
 	! Determines whether any solid barrier, that is, any container that is
 	! not open, lies between the player and obj. If flag is true, this
 	! routine never prints anything; otherwise it prints a message like
-	! “You can't, because ! … is in the way.” if any barrier is found.
+	! "You can't, because ! ... is in the way." if any barrier is found.
 	! The routine returns true if a barrier is found, false if not.
 
 	_g_item = p_item;

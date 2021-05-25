@@ -29,9 +29,9 @@ REM # copy over the compiled executable into the release folder
 COPY /Y \EPOC32\Release\MARM\Rel\INFORM6.EXE /B inform6.exe /B  >NUL
 
 REM # remove the old release ZIP file
-DEL /F /Q "inform6-epoc32*"  >NUL 2>NUL
+DEL /F /Q "inform6*.zip"  >NUL 2>NUL
 
-..\%BIN_ZIP% a "inform6-epoc32-v635.zip" ^
+..\%BIN_ZIP% a "inform635-epoc32-puny25.zip" ^
     -bso0 -bsp1 -bse0 -tzip -r -mx9 -mfb258 -mpass15 ^
     -x!Desktop.ini -x!Thumbs.db -x!.* -- *
 IF ERRORLEVEL 1 PAUSE

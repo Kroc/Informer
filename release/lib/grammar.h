@@ -20,6 +20,8 @@ Verb 'attack' 'break' 'crack' 'destroy'
     * noun 'with' held                          -> Attack;
 
 Verb 'climb' 'scale'
+	* noun                                      -> Climb
+	* 'up'/'over' noun                          -> Climb
 	* 'into'/'onto' noun                        -> Enter
 	* 'out' 'of'/'from' noun                    -> Exit;
 
@@ -214,18 +216,23 @@ Verb 'wear'
 ];
 
 [ AskToSub;
-	PrintMsg(MSG_ASKTO_SUCCESS);
+	PrintMsg(MSG_ASKTO_SUCCESS, noun);
 ];
 
 [ AskForSub;
 	if (noun == player) <<Inv>>;
-	PrintMsg(MSG_ASKFOR_SUCCESS);
+	PrintMsg(MSG_ASKFOR_SUCCESS, noun);
 ];
 
 [ AttackSub;
 	if (ObjectIsUntouchable(noun)) return;
 	if (noun has animate && RunLife(noun, ##Attack) ~= 0) rfalse;
 	PrintMsg(MSG_ATTACK_SUCCESS);
+];
+
+[ ClimbSub;
+	if(noun has animate) { PrintMsg(MSG_CLIMB_ANIMATE); rtrue;}
+	PrintMsg(MSG_CLIMB_DEFAULT);
 ];
 
 [ CloseSub;
@@ -272,9 +279,6 @@ Verb 'wear'
 	!if(_p ~= location) <<Insert noun _p>>;
 	move noun to parent(player);
 	give noun moved;
-#IfDef OPTIONAL_MANUAL_SCOPE;
-	scope_modified = true;
-#EndIf;
 	if(AfterRoutines()) rtrue;
 	if(keep_silent) return;
 	PrintMsg(MSG_DROP_DROPPED);
@@ -339,6 +343,7 @@ Verb 'wear'
 		}
         if (noun has switchable) { PrintMsg(MSG_EXAMINE_ONOFF); rtrue; }
 		PrintMsg(MSG_EXAMINE_NOTHING_SPECIAL);
+		rtrue;
     }
 	x = PrintOrRun(noun, description);
 	if (x == 0 && noun has switchable) PrintMsg(MSG_EXAMINE_ONOFF);
@@ -370,7 +375,6 @@ Verb 'wear'
 	if (parent(player) == noun) <<Exit noun>>;
 	PrintMsg(MSG_EXIT_NOT_ON); rtrue;
 ];
-
 
 [ GiveSub;
 	if(ObjectIsUntouchable(second)) return;
@@ -417,9 +421,6 @@ Verb 'wear'
 	if (_AtFullCapacity(second)) { PrintMsg(MSG_INSERT_NO_ROOM); rtrue; }
 
 	move noun to second;
-#IfDef OPTIONAL_MANUAL_SCOPE;
-	scope_modified = true;
-#EndIf;
 
 	! run after on object
 	if(AfterRoutines()) rtrue;
@@ -532,9 +533,6 @@ Verb 'wear'
 	if (_AtFullCapacity(second)) { PrintMsg(MSG_PUTON_NO_ROOM); rtrue; }
 
 	move noun to second;
-#IfDef OPTIONAL_MANUAL_SCOPE;
-	scope_modified = true;
-#EndIf;
 
 	! run after on receiver
 #IfDef DEBUG;
@@ -961,16 +959,18 @@ Verb meta 'again' 'g//'
 Verb meta 'brief' 'normal'
 	*                                           -> LookModeNormal;
 
-#IfDef OPTIONAL_FULL_SCORE;
+#Ifdef OPTIONAL_FULL_SCORE;
 Verb meta 'fullscore' 'full'
     *                                           -> FullScore
     * 'score'                                   -> FullScore;
-#EndIf;
+#Endif;
 
+#Ifndef NO_SCORE;
 Verb meta 'notify'
 	*                                           -> NotifyOn
 	* 'on'                                      -> NotifyOn
 	* 'off'                                     -> NotifyOff;
+#Endif;
 
 Verb meta 'oops'
     *                                           -> Oops
@@ -985,8 +985,10 @@ Verb meta 'restore'
 Verb meta 'save'
 	*                                           -> Save;
 
+#Ifndef NO_SCORE;
 Verb meta 'score'
     *                                           -> Score;
+#Endif;
 
 Verb meta 'superbrief' 'short'
 	*                                           -> LookModeShort;
@@ -1061,6 +1063,7 @@ Verb meta 'quit' 'q//'
 	PrintMsg(MSG_LOOKMODE_SHORT);
 ];
 
+#Ifndef NO_SCORE;
 [ NotifyOnSub;
 	notify_mode = 1;
 	"Score notification on.";
@@ -1070,6 +1073,7 @@ Verb meta 'quit' 'q//'
 	notify_mode = 0;
 	"Score notification off.";
 ];
+#Endif;
 
 [ OopsSub;
 	"Think nothing of it.";
@@ -1124,12 +1128,15 @@ Verb meta 'quit' 'q//'
 #EndIf;
 ];
 
+#Ifndef NO_SCORE;
 [ ScoreSub;
 	PrintMsg(MSG_SCORE_SUCCESS);
 	PrintRank();
 ];
+#Endif;
 
 [ Banner _i;
+	new_line;
 	if(Story ~= 0) {
 #IfV5;
 		style bold;
@@ -1342,9 +1349,7 @@ Global scope_cnt;
 	if(IndirectlyContains(noun, player)) { PrintMsg(MSG_TAKE_PLAYER_PARENT, noun); rtrue; }
 
 	move noun to player;
-#IfDef OPTIONAL_MANUAL_SCOPE;
 	scope_modified = true;
-#EndIf;
 	"Purloined.";
 ];
 
@@ -1369,7 +1374,7 @@ Global scope_cnt;
 [ ScopeSub;
 	scope_cnt = 1;
 	LoopOverScope(_ScopeSubHelper, noun);
-	if(scope_cnt == 0) "Nothing in scope.^";
+	if(scope_cnt < 2) "Nothing in scope.^";
 ];
 
 [ TreeSub _obj _p;
@@ -1408,15 +1413,32 @@ Global scope_cnt;
 #Ifnot;
 			print "Probably give reactive to these objects (see notes about ~reactive~ in manual) :^";
 			objectloop(_o) {
+#Ifdef OPTIONAL_REACTIVE_PARSE_NAME;
 				if(_o hasnt reactive && (_o.&react_before ~= 0 ||
-						_o.&react_after ~= 0 || _o.&each_turn ~= 0))
+						_o.&react_after ~= 0 || _o.&each_turn ~= 0 ||
+						_o.&add_to_scope ~= 0 || _o.&parse_name ~= 0))
 					print "(",_o,") ", (name) _o, "^";
+#Ifnot;
+				if(_o hasnt reactive && (_o.&react_before ~= 0 ||
+						_o.&react_after ~= 0 || _o.&each_turn ~= 0 ||
+						_o.&add_to_scope ~= 0))
+					print "(",_o,") ", (name) _o, "^";
+#Endif;
 			}
 			print "^Remove reactive from these objects:^";
-			objectloop(_o)
+			objectloop(_o) {
+#Ifdef OPTIONAL_REACTIVE_PARSE_NAME;
 				if(_o has reactive && _o.&react_before == 0 &&
-						_o.&react_after == 0 && _o.&each_turn == 0)
+						_o.&react_after == 0 && _o.&each_turn == 0 &&
+						_o.&add_to_scope == 0 && _o.&parse_name == 0)
 					print "(",_o,") ", (name) _o, "^";
+#Ifnot;
+				if(_o has reactive && _o.&react_before == 0 &&
+						_o.&react_after == 0 && _o.&each_turn == 0 &&
+						_o.&add_to_scope == 0)
+					print "(",_o,") ", (name) _o, "^";
+#Endif;
+			}
 #Endif;
 		default:
 			"Type one of the following:^
@@ -1572,9 +1594,10 @@ Global scope_cnt;
 
 #IfDef OPTIONAL_PRINT_SCENERY_CONTENTS;
 		newline_flag = true;
-		objectloop(_obj in _ceil && (_obj has scenery or concealed) &&
+		objectloop(_obj in _ceil && _obj has scenery &&
 				(_obj has supporter ||
 					(_obj has container && _obj has transparent or open)) &&
+					child(_obj) ~= 0 &&
 					IndirectlyContains(_obj, player) == false) {
 			if(PrintContents(_ListObjsInOnMsg, _obj)) {
 				print (string) ". ";
@@ -1599,9 +1622,11 @@ Global scope_cnt;
 		give location visited;
 ];
 
-#IfnDef PrintRank;
+#Ifndef NO_SCORE;
+#Ifndef PrintRank;
 [ PrintRank; "."; ];
-#EndIf;
+#Endif;
+#Endif;
 
 #IfDef OPTIONAL_FULL_SCORE;
 #IfDef TASKS_PROVIDED;
@@ -1667,19 +1692,9 @@ Global scope_cnt;
 
     if(_AtFullCapacity(player)) { PrintMsg(MSG_TAKE_NO_CAPACITY); rtrue; }
 
-#IfDef OPTIONAL_SCORED;
-	if(noun hasnt moved && noun has scored) {
-		score = score + OBJECT_SCORE;
-#IfDef OPTIONAL_FULL_SCORE;
-		things_score = things_score + OBJECT_SCORE;
-#EndIf;
-	}
-#EndIf;
 	move noun to player;
-	give noun moved ~concealed;
-#IfDef OPTIONAL_MANUAL_SCOPE;
-	scope_modified = true;
-#EndIf;
+	give noun ~concealed;
+	update_moved = true;
 
 	! Send "after" message to the object letting go of the item, if any.
 
@@ -1761,7 +1776,8 @@ Global scope_cnt;
 	! If _new_location is 0, we tell the player they can't go there and exit
 	if(_new_location == 0) {
 		if(real_location provides cant_go) {
-			print_ret (string) real_location.cant_go;
+			PrintOrRun(real_location, cant_go);
+			rtrue;
 		}
         PrintMsg(MSG_GO_CANT_GO);
 		rtrue;
