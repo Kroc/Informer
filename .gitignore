@@ -11,6 +11,10 @@ __*
 # the release binary does not need to be in the repo;
 # we'll produce these locally and zip for release
 release/inform6.exe
+# the PunyInform libraries will be copied in by the
+# build script so don't need to be in the repo
+release/howto/*
+release/lib/*
 
 # unrelated junk files
 **/Thumbs.db

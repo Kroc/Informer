@@ -1,3 +1,6 @@
 [submodule "inform6-src"]
 	path = inform6-src
 	url = https://github.com/Kroc/Inform6.git
+[submodule "PunyInform"]
+	path = PunyInform
+	url = https://github.com/johanberntsson/PunyInform.git

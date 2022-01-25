@@ -1,7 +1,8 @@
-Inform 6.34 for Win32 (21st May 2020)
+Inform 6.36 for Win32 (24th January 2022)
 
 This program is a compiler of Infocom format (also called "Z-machine")
-story files: copyright (c) Graham Nelson 1993 - 2020.
+story files, as well as "Glulx" story files:
+Copyright (c) Graham Nelson 1993 - 2022.
 
 Usage: "inform [commands...] <file1> [<file2>]"
 
@@ -15,20 +16,30 @@ One or more words can be supplied as "commands". These may be:
                 (see "inform -h2" for the full range)
 
   +dir          set Include_Path to this directory
+  ++dir         add this directory to Include_Path
   +PATH=dir     change the PATH to this directory
+  ++PATH=dir    add this directory to the PATH
 
-  $...          one of the following memory commands:
-     $list            list current memory allocation settings
-     $huge            make standard "huge game" settings (default)
-     $large           make standard "large game" settings 
-     $small           make standard "small game" settings 
+  $...          one of the following configuration commands:
+     $list            list current settings
      $?SETTING        explain briefly what SETTING is for
      $SETTING=number  change SETTING to given number
+     $#SYMBOL=number  define SYMBOL as a constant in the story
 
   (filename)    read in a list of commands (in the format above)
                 from this "setup file"
 
-For example: "inform -dexs $huge curses".
+Alternate command-line formats for the above:
+  --help                 (this page)
+  --path PATH=dir
+  --addpath PATH=dir
+  --list
+  --helpopt SETTING
+  --opt SETTING=number
+  --define SETTING=number
+  --config filename      (setup file)
+
+For example: "inform -dexs curses".
 
 For fuller information, see the Inform Designer's Manual.
 
@@ -153,13 +164,16 @@ Help on the full list of legal switch commands:
   d2  contract double spaces after exclamation and question marks, too
   e   economy mode (slower): make use of declared abbreviations
   f   frequencies mode: show how useful abbreviations are
-  g   traces calls to functions (except in the library)
-  g2  traces calls to all functions
-  h   print this information
+  g   traces calls to all game functions
+  g2  traces calls to all game and library functions
+  g3  traces calls to all functions (including veneer)
+  h   print general help information
+  h1  print help information on filenames and path options
+  h2  print help information on switches (this page)
   i   ignore default switches set within the file
   j   list objects as constructed
-  k   output Infix debugging information to "gameinfo.dbg" (and switch -D on)
-  l   list every statement run through Inform
+  k   output debugging information to "gameinfo.dbg"
+  l   list every statement run through Inform (not implemented)
   m   say how much memory has been allocated
   n   print numbers of properties, attributes and actions
   o   print offset addresses
@@ -169,15 +183,16 @@ Help on the full list of legal switch commands:
   s   give statistics
   t   trace assembly-language (with full hex dumps; see -a)
   u   work out most useful abbreviations (very very slowly)
-  v3  compile to version-3 ("Standard") story file
-  v4  compile to version-4 ("Plus") story file
-  v5  compile to version-5 ("Advanced") story file: the default
-  v6  compile to version-6 (graphical) story file
+  v3  compile to version-3 ("Standard"/"ZIP") story file
+  v4  compile to version-4 ("Plus"/"EZIP") story file
+  v5  compile to version-5 ("Advanced"/"XZIP") story file: the default
+  v6  compile to version-6 (graphical/"YZIP") story file
+  v7  compile to version-7 (expanded "Advanced") story file
   v8  compile to version-8 (expanded "Advanced") story file
   w   disable warning messages
   x   print # for every 100 lines compiled
   y   trace linking system
-  z   print memory map of the Z-machine
+  z   print memory map of the virtual machine
 
   B   use big memory model (for large V6/V7 files)
   C0  text character set is plain ASCII only

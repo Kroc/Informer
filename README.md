@@ -1,10 +1,10 @@
-# Inform6 for EPOC32 #
+﻿# Inform6 for EPOC32 #
 
 Write (and play!) Interactive Fiction (a.k.a "text adventures") directly on your [Psion 5][Series5] Series / 5mx and other [EPOC32]-based devices!
 
 ![Screenshot of an Inform6/PunyInform text file being edited on an EPOC32 emulator](readme_informer.png)
 
-This is an updated build (v6.35) of [Inform6] for EPOC32 devices; I.e. Psion 5 Series, 5 mx, 5 mx Pro, Revo, Series 7, netBook & netPad and other licenced devices including Geofox One, Osaris, Diamond Mako and Ericsson MC218.
+This is an updated build (v6.36) of [Inform6] for EPOC32 devices; I.e. Psion 5 Series, 5 mx, 5 mx Pro, Revo, Series 7, netBook & netPad and other licenced devices including Geofox One, Osaris, Diamond Mako and Ericsson MC218.
 
 The [IF Archive] has a [build of v6.21](http://www.ifarchive.org/indexes/if-archiveXinfocomXcompilersXinform6Xexecutables.html
 ) from 1999 produced by Simon Quinn, but this was not up to date enough to work with [PunyInform], a library for producing text-adventures compact and lightweight enough to run on old hardware.
