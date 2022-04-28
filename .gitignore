@@ -15,6 +15,7 @@ release/inform6.exe
 # build script so don't need to be in the repo
 release/howto/*
 release/lib/*
+release/QuickRef.txt
 
 # unrelated junk files
 **/Thumbs.db

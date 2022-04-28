@@ -29,6 +29,8 @@ COPY /Y "PunyInform\*.inf"              "release\howto"
 REM # (the test-bench will never run in the RAM limits of a Psion)
 DEL /F /Q "release\howto\testbench.inf"  >NUL 2>NUL
 COPY /Y "PunyInform\howto\*.inf"        "release\howto"
+COPY /Y "PunyInform\documentation\PunyInformQuickRef_*.md" ^
+					"release\QuickRef.txt"
 
 ECHO:
 ECHO * Make release bundle...
