@@ -88,7 +88,7 @@ int snprintf(char *str, size_t n, const char *fmt, ...)
  * vsnprintf --
  *	Bounded version of vsprintf.
  */
-/*int vsnprintf(char *str, size_t n, const car *fmt, va_list ap)
+int vsnprintf(char *str, size_t n, const char *fmt, va_list ap)
 {
 	static int ret_charpnt = -1;
 	size_t len;
@@ -105,5 +105,18 @@ int snprintf(char *str, size_t n, const char *fmt, ...)
 		// NOTREACHED
 	}
 	return ((int)len);
-}*/
+}
 
+/*
+	my guess is that the print functions sometimes call for conversion of
+	double values and this appears to be unimplemented in GCC's/PSION's
+	ARM library, ergo we need to stub it out. this probably means that
+	64-bit floats are not used/supported on EPOC32?
+
+	https://gcc.gnu.org/onlinedocs/gccint/Soft-float-library-routines.html
+*/
+unsigned int __fixunsdfsi (double a)
+{
+	//TODO: can we implement this at all with our own code?
+	return -1;
+}

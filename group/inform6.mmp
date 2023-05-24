@@ -18,7 +18,6 @@ SOURCE		expressp.c
 SOURCE		files.c
 SOURCE		inform.c
 SOURCE		lexer.c
-SOURCE		linker.c
 SOURCE		memory.c
 SOURCE		objects.c
 SOURCE		states.c
